@@ -75,11 +75,12 @@ func cmdText() *cobra.Command {
 type textType string
 
 const (
-	typeTarget                textType = "target"
-	typeMakefileLine          textType = "makefile"
-	typePackageName           textType = "name"
-	typePackageVersion        textType = "version"
-	typePackageNameAndVersion textType = "name-version"
+	typeTarget                         textType = "target"
+	typeMakefileLine                   textType = "makefile"
+	typePackageName                    textType = "name"
+	typePackageVersion                 textType = "version"
+	typePackageNameAndVersion          textType = "name-version"
+	typePackageNameAndVersionSeparated textType = "name-version-separated"
 )
 
 var textTypes = []textType{
@@ -88,6 +89,7 @@ var textTypes = []textType{
 	typePackageName,
 	typePackageVersion,
 	typePackageNameAndVersion,
+	typePackageNameAndVersionSeparated,
 }
 
 func text(g dag.Graph, pkgs *dag.Packages, arch string, t textType, w io.Writer) error {
@@ -109,6 +111,7 @@ func text(g dag.Graph, pkgs *dag.Packages, arch string, t textType, w io.Writer)
 		if pkg == nil || pkg.Name == "" {
 			continue
 		}
+		nameVersionEpoch := fmt.Sprintf("%s-%s-r%d", pkg.Name, pkg.Version, pkg.Epoch)
 		switch t {
 		case typeTarget:
 			fmt.Fprintf(w, "%s\n", makeTarget(name, arch, pkg))
@@ -119,7 +122,9 @@ func text(g dag.Graph, pkgs *dag.Packages, arch string, t textType, w io.Writer)
 		case typePackageVersion:
 			fmt.Fprintf(w, "%s\n", pkg.Version)
 		case typePackageNameAndVersion:
-			fmt.Fprintf(w, "%s-%s-r%d\n", pkg.Name, pkg.Version, pkg.Epoch)
+			fmt.Fprintf(w, "%s\n", nameVersionEpoch)
+		case typePackageNameAndVersionSeparated:
+			fmt.Fprintf(w, "%s:%s\n", pkg.Name, nameVersionEpoch)
 		default:
 			return fmt.Errorf("invalid type: %s", t)
 		}
